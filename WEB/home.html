@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home - ESP32 LED Control</title>
+</head>
+<body>
+  <h1>ESP32 LED Control</h1>
+  <button id="led-toggle">Turn LED On/Off</button>
+  <div id="led-status"></div>
+
+  <script>
+    const apiUrl = 'https://espreall.onrender.com'; // Your backend URL on Render
+
+    async function getLedState() {
+      const response = await fetch(`${apiUrl}/led`, {
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+        },
+      });
+      const data = await response.json();
+      if (data.state) {
+        document.getElementById('led-status').textContent = `LED is ${data.state}`;
+      } else {
+        document.getElementById('led-status').textContent = 'Failed to get LED state.';
+      }
+    }
+
+    async function toggleLed() {
+      const currentState = document.getElementById('led-status').textContent.includes('On') ? 'off' : 'on';
+      const response = await fetch(`${apiUrl}/led`, {
+        method: 'POST',
+        headers: {
+          'Authorization': 'Bearer ' + localStorage.getItem('token'),
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ state: currentState }),
+      });
+      const data = await response.json();
+      if (data.message) {
+        getLedState(); // Update LED state after toggling
+      }
+    }
+
+    document.getElementById('led-toggle').addEventListener('click', toggleLed);
+
+    // Get the current LED state on page load
+    getLedState();
+  </script>
+</body>
+</html>
